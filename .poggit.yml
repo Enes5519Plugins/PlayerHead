@@ -1,0 +1,7 @@
+--- # Poggit-CI Manifest. Open the CI at https://poggit.pmmp.io/ci/Enes5519/PlayerHead
+branches:
+- master
+projects:
+  PlayerHead:
+    path: ""
+...
