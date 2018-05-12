@@ -36,7 +36,7 @@ use pocketmine\Player;
 use pocketmine\plugin\PluginBase;
 
 class PlayerHead extends PluginBase implements Listener{
-	
+
 	public function onEnable(){
 		Entity::registerEntity(HeadEntity::class, true, ["PlayerHead"]);
 		$this->getServer()->getCommandMap()->register("playerhead", new PHCommand());
@@ -61,12 +61,23 @@ class PlayerHead extends PluginBase implements Listener{
 	}
 
 	public static function spawnPlayerHead(Player $player, Vector3 $pos){
-		$nbt = HeadEntity::createBaseNBT($pos->add(0.5, 0, 0.5), null, $player->yaw);
+		$nbt = HeadEntity::createBaseNBT($pos->add(0.5, 0, 0.5), null, self::getYaw($pos, $player));
 		$nbt->setString("Head", $player->getName());
 		$nbt->setByteArray("SkinData", $player->getSkin()->getSkinData());
 
 		$head = new HeadEntity($player->level, $nbt);
 		$head->spawnToAll();
+	}
+
+	public static function getYaw(Vector3 $pos, Vector3 $target) : float{
+		$xDist = $target->x - $pos->x;
+		$zDist = $target->z - $pos->z;
+		$yaw = atan2($zDist, $xDist) / M_PI * 180 - 90;
+		if($yaw < 0){
+			$yaw += 360.0;
+		}
+
+		return $yaw;
 	}
 
 	public static function getPlayerHeadItem(string $name) : Item{
