@@ -56,7 +56,7 @@ class PHCommand extends Command{
 		$player = $sender->getServer()->getPlayer(implode(" ", $args));
 		if($player instanceof Player){
 			$name = $player->getName();
-			PlayerHead::getPlayerHeadItem($name);
+			$item = PlayerHead::getPlayerHeadItem($name);
 			$sender->getInventory()->addItem($item);
 			$sender->sendMessage("§8» §a$name's head added in your inventory.");
 		}
