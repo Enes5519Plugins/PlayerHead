@@ -26,13 +26,14 @@ namespace Enes5519\PlayerHead;
 use Enes5519\PlayerHead\commands\PHCommand;
 use Enes5519\PlayerHead\entities\HeadEntity;
 use pocketmine\entity\Entity;
+use pocketmine\entity\Skin;
 use pocketmine\event\block\BlockPlaceEvent;
 use pocketmine\event\Listener;
 use pocketmine\item\Item;
 use pocketmine\item\ItemFactory;
+use pocketmine\level\Position;
 use pocketmine\math\Vector3;
 use pocketmine\permission\Permission;
-use pocketmine\Player;
 use pocketmine\plugin\PluginBase;
 
 class PlayerHead extends PluginBase implements Listener{
@@ -50,23 +51,29 @@ class PlayerHead extends PluginBase implements Listener{
 			$item = $player->getInventory()->getItemInHand();
 			if($item->getId() == Item::MOB_HEAD){
 				$head = $item->getNamedTag()->getString("Head", "");
-				$player = $this->getServer()->getPlayerExact($head);
-				if($player != null){
-					$this->spawnPlayerHead($player, $event->getBlock());
-					if(!$player->isCreative()) $player->getInventory()->clear($player->getInventory()->getHeldItemIndex());
+				$skinData = $item->getNamedTag()->getByteArray("SkinData", "");
+				if($skinData != ""){
+					$this->spawnPlayerHead(new Skin($head, $skinData), $event->getBlock(), $head, self::getYaw($event->getBlock(), $player));
+					if(!$player->isCreative()){
+						$item = $player->getInventory()->getItemInHand();
+						$item->pop();
+						$player->getInventory()->setItemInHand($item);
+					}
 					$event->setCancelled(true);
 				}
 			}
 		}
 	}
 
-	public static function spawnPlayerHead(Player $player, Vector3 $pos){
-		$nbt = HeadEntity::createBaseNBT($pos->add(0.5, 0, 0.5), null, self::getYaw($pos, $player));
-		$nbt->setString("Head", $player->getName());
-		$nbt->setByteArray("SkinData", $player->getSkin()->getSkinData());
+	public static function spawnPlayerHead(Skin $skin, Position $pos, string $name = null, float $yaw = null, float $pitch = null) : HeadEntity{
+		$nbt = HeadEntity::createBaseNBT($pos->add(0.5, 0, 0.5), null, $yaw ?? 0.0, $pitch ?? 0.0);
+		$nbt->setString("Head", $name ?? "Player");
+		$nbt->setByteArray("SkinData", $skin->getSkinData());
 
-		$head = new HeadEntity($player->level, $nbt);
+		$head = new HeadEntity($pos->level, $nbt);
 		$head->spawnToAll();
+
+		return $head;
 	}
 
 	public static function getYaw(Vector3 $pos, Vector3 $target) : float{
@@ -77,15 +84,26 @@ class PlayerHead extends PluginBase implements Listener{
 			$yaw += 360.0;
 		}
 
+		$array = [45, 90, 135, 180, 225, 270, 315, 360];
+		foreach($array as $a){
+			$min = min($yaw, $a);
+			if($min == $yaw){
+				return $a;
+			}else{
+				continue;
+			}
+		}
+
 		return $yaw;
 	}
 
-	public static function getPlayerHeadItem(string $name) : Item{
+	public static function getPlayerHeadItem(Skin $skin, string $name = null) : Item{
 		$item = ItemFactory::get(Item::MOB_HEAD, 3);
 		$tag = $item->getNamedTag();
+		$tag->setByteArray("SkinData", $skin->getSkinData());
 		$tag->setString("Head", $name);
 		$item->setNamedTag($tag);
-		$item->setCustomName("§r§6$name's Head");
+		$item->setCustomName("§r§6".($name ?? "Player")."'s Head");
 		return $item;
 	}
 

@@ -105,6 +105,10 @@ class HeadEntity extends Entity{
 		$this->server->broadcastPacket($targets ?? $this->hasSpawned, $pk);
 	}
 
+	public function hasMovementUpdate() : bool{
+		return false;
+	}
+
 	public function getUniqueId() : UUID{
 		return $this->uuid;
 	}
@@ -117,7 +121,7 @@ class HeadEntity extends Entity{
 	}
 
 	public function getDrops() : array{
-		return [PlayerHead::getPlayerHeadItem($this->getSkin()->getSkinId())];
+		return [PlayerHead::getPlayerHeadItem($this->getSkin(), $this->getSkin()->getSkinId())];
 	}
 
 }
