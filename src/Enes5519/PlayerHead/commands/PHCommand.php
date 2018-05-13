@@ -39,7 +39,7 @@ class PHCommand extends Command{
 			["ph"]
 		);
 
-		$this->setPermission("playerhead");
+		$this->setPermission("playerhead.give");
 	}
 
 	public function execute(CommandSender $sender, string $commandLabel, array $args){

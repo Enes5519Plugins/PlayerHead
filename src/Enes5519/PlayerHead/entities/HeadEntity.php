@@ -26,6 +26,8 @@ namespace Enes5519\PlayerHead\entities;
 use Enes5519\PlayerHead\PlayerHead;
 use pocketmine\entity\Entity;
 use pocketmine\entity\Skin;
+use pocketmine\event\entity\EntityDamageByEntityEvent;
+use pocketmine\event\entity\EntityDamageEvent;
 use pocketmine\item\Item;
 use pocketmine\item\ItemFactory;
 use pocketmine\level\Level;
@@ -111,6 +113,18 @@ class HeadEntity extends Entity{
 
 	public function getUniqueId() : UUID{
 		return $this->uuid;
+	}
+
+	public function attack(EntityDamageEvent $source){
+		$attack = true;
+		if($source instanceof EntityDamageByEntityEvent){
+			$damager = $source->getDamager();
+			if($damager instanceof Player){
+				$attack = $damager->hasPermission("playerhead.attack");
+			}
+		}
+
+		if($attack) parent::attack($source);
 	}
 
 	public function saveNBT(){

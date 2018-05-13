@@ -33,7 +33,6 @@ use pocketmine\item\Item;
 use pocketmine\item\ItemFactory;
 use pocketmine\level\Position;
 use pocketmine\math\Vector3;
-use pocketmine\permission\Permission;
 use pocketmine\plugin\PluginBase;
 
 class PlayerHead extends PluginBase implements Listener{
@@ -41,13 +40,12 @@ class PlayerHead extends PluginBase implements Listener{
 	public function onEnable(){
 		Entity::registerEntity(HeadEntity::class, true, ["PlayerHead"]);
 		$this->getServer()->getCommandMap()->register("playerhead", new PHCommand());
-		$this->getServer()->getPluginManager()->addPermission(new Permission("playerhead", null, "op"));
 		$this->getServer()->getPluginManager()->registerEvents($this, $this);
 	}
 
 	public function onPlace(BlockPlaceEvent $event){
 		$player = $event->getPlayer();
-		if($player->hasPermission("playerhead")){
+		if($player->hasPermission("playerhead.spawn")){
 			$item = $player->getInventory()->getItemInHand();
 			if($item->getId() == Item::MOB_HEAD){
 				$head = $item->getNamedTag()->getString("Head", "");
