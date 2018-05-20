@@ -58,7 +58,7 @@ class HeadEntity extends Entity{
 		$this->uuid = UUID::fromData((string) $this->getId(), $this->skin->getSkinData(), "");
 	}
 
-	protected function initEntity(){
+	protected function initEntity() : void{
 		$this->setMaxHealth(1);
 		$this->setHealth(1);
 		parent::initEntity();
@@ -115,7 +115,7 @@ class HeadEntity extends Entity{
 		return $this->uuid;
 	}
 
-	public function attack(EntityDamageEvent $source){
+	public function attack(EntityDamageEvent $source) : void{
 		$attack = true;
 		if($source instanceof EntityDamageByEntityEvent){
 			$damager = $source->getDamager();
@@ -127,7 +127,7 @@ class HeadEntity extends Entity{
 		if($attack) parent::attack($source);
 	}
 
-	public function saveNBT(){
+	public function saveNBT() : void{
 		parent::saveNBT();
 
 		$this->namedtag->setTag(new ByteArrayTag("SkinData", $this->skin->getSkinData()));
