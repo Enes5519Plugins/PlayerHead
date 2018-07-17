@@ -1,5 +1,5 @@
 # PlayerHead
-PlayerHead plugin for Altay, pmmp
+Gives the head of a player. 
 
 ## Commands
 - **/playerhead <player-name> : Give player head**
@@ -8,12 +8,13 @@ PlayerHead plugin for Altay, pmmp
 ```php
 # Spawn ($player is Player class)
 $skin = $player->getSkin(); // skin
-$pos = $player; // spawn position
-$name = $player->getName(); // for item
-$yaw = 0.0;
-$pitch = 0.0;
-PlayerHead::spawnPlayerHead($skin, $pos, $name, $yaw, $pitch);
+$skin = new Skin($player->getName(), $skin->getSkinData(), $skin->getCapeData(), $skin->getGeometryName(), $skin->getGeometryData()); // for item name
+PlayerHead::spawnPlayerHead($skin, $player); // Skin - Position - Yaw - Pitch
 ```
+
+## TODOS
+- [ ] Add Config
+- [ ] Handle death event for give head
 
 ## Screenshot 
 <img height=200 src="https://cdn.pbrd.co/images/HkJebcX.png" />

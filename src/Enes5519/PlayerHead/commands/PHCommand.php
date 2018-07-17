@@ -27,6 +27,7 @@ use Enes5519\PlayerHead\PlayerHead;
 use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
 use pocketmine\command\utils\InvalidCommandSyntaxException;
+use pocketmine\entity\Skin;
 use pocketmine\Player;
 
 class PHCommand extends Command{
@@ -54,7 +55,9 @@ class PHCommand extends Command{
 		$player = $sender->getServer()->getPlayer(implode(" ", $args));
 		if($player instanceof Player){
 			$name = $player->getName();
-			$item = PlayerHead::getPlayerHeadItem($player->getSkin(), $name);
+			$skin = $player->getSkin();
+			$skin = new Skin($name, $skin->getSkinData(), $skin->getCapeData(), $skin->getGeometryName(), $skin->getGeometryData());
+			$item = PlayerHead::getPlayerHeadItem($skin);
 			$sender->getInventory()->addItem($item);
 			$sender->sendMessage("§8» §a$name's head added in your inventory.");
 		}

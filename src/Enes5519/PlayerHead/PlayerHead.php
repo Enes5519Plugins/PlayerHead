@@ -33,76 +33,111 @@ use pocketmine\item\Item;
 use pocketmine\item\ItemFactory;
 use pocketmine\level\Position;
 use pocketmine\math\Vector3;
+use pocketmine\nbt\tag\ByteArrayTag;
+use pocketmine\nbt\tag\CompoundTag;
+use pocketmine\nbt\tag\StringTag;
 use pocketmine\plugin\PluginBase;
 
 class PlayerHead extends PluginBase implements Listener{
 
-	public function onEnable(){
-		Entity::registerEntity(HeadEntity::class, true, ["PlayerHead"]);
-		$this->getServer()->getCommandMap()->register("playerhead", new PHCommand());
-		$this->getServer()->getPluginManager()->registerEvents($this, $this);
-	}
+    public function onEnable(){
+        Entity::registerEntity(HeadEntity::class, true, ["PlayerHead"]);
+        $this->getServer()->getCommandMap()->register("playerhead", new PHCommand());
+        $this->getServer()->getPluginManager()->registerEvents($this, $this);
+    }
 
-	public function onPlace(BlockPlaceEvent $event){
-		$player = $event->getPlayer();
-		if($player->hasPermission("playerhead.spawn")){
-			$item = $player->getInventory()->getItemInHand();
-			if($item->getId() == Item::MOB_HEAD){
-				$head = $item->getNamedTag()->getString("Head", "");
-				$skinData = $item->getNamedTag()->getByteArray("SkinData", "");
-				if($skinData != ""){
-					$this->spawnPlayerHead(new Skin($head, $skinData), $event->getBlock(), $head, self::getYaw($event->getBlock(), $player));
-					if(!$player->isCreative()){
-						$item = $player->getInventory()->getItemInHand();
-						$item->pop();
-						$player->getInventory()->setItemInHand($item);
-					}
-					$event->setCancelled(true);
-				}
-			}
-		}
-	}
+    public function onPlace(BlockPlaceEvent $event){
+        $player = $event->getPlayer();
+        if($player->hasPermission("playerhead.spawn") and ($item = $player->getInventory()->getItemInHand())->getId() == Item::MOB_HEAD){
+            $blockData = $item->getCustomBlockData() ?? new CompoundTag();
+            $skin = $blockData->getCompoundTag("Skin");
+            if($skin !== null){
+                $this->spawnPlayerHead($skin, $event->getBlock(), self::getYaw($event->getBlock(), $player));
+                if(!$player->isCreative()){
+                    $item->pop();
+                    $player->getInventory()->setItemInHand($item);
+                }
+                $event->setCancelled(true);
+            }
+        }
+    }
 
-	public static function spawnPlayerHead(Skin $skin, Position $pos, string $name = null, float $yaw = null, float $pitch = null) : HeadEntity{
-		$nbt = HeadEntity::createBaseNBT($pos->add(0.5, 0, 0.5), null, $yaw ?? 0.0, $pitch ?? 0.0);
-		$nbt->setString("Head", $name ?? "Player");
-		$nbt->setByteArray("SkinData", $skin->getSkinData());
+    /**
+     * @param CompoundTag|Skin $skin
+     * @param Position $pos
+     * @param float|null $yaw
+     * @param float|null $pitch
+     * @return HeadEntity
+     */
+    public static function spawnPlayerHead($skin, Position $pos, float $yaw = null, float $pitch = null) : HeadEntity{
+        if($skin instanceof Skin){
+            $skinTag = self::skinToTag($skin);
+        }else{
+            $skinTag = $skin;
+        }
 
-		$head = new HeadEntity($pos->level, $nbt);
-		$head->spawnToAll();
+        $nbt = HeadEntity::createBaseNBT($pos->add(0.5, 0, 0.5), null, $yaw ?? 0.0, $pitch ?? 0.0);
+        $nbt->setTag($skinTag);
+        $head = new HeadEntity($pos->level, $nbt);
+        $head->spawnToAll();
 
-		return $head;
-	}
+        return $head;
+    }
 
-	public static function getYaw(Vector3 $pos, Vector3 $target) : float{
-		$xDist = $target->x - $pos->x;
-		$zDist = $target->z - $pos->z;
-		$yaw = atan2($zDist, $xDist) / M_PI * 180 - 90;
-		if($yaw < 0){
-			$yaw += 360.0;
-		}
+    public static function getYaw(Vector3 $pos, Vector3 $target) : float{
+        $xDist = $target->x - $pos->x;
+        $zDist = $target->z - $pos->z;
+        $yaw = atan2($zDist, $xDist) / M_PI * 180 - 90;
+        if($yaw < 0){
+            $yaw += 360.0;
+        }
 
-		$array = [45, 90, 135, 180, 225, 270, 315, 360];
-		foreach($array as $a){
-			$min = min($yaw, $a);
-			if($min == $yaw){
-				return $a;
-			}else{
-				continue;
-			}
-		}
+        foreach([45, 90, 135, 180, 225, 270, 315, 360] as $direction){
+            $min = min($yaw, $direction);
+            if($min == $yaw){
+                return $direction;
+            }
+        }
 
-		return $yaw;
-	}
+        return $yaw;
+    }
 
-	public static function getPlayerHeadItem(Skin $skin, string $name = null) : Item{
-		$item = ItemFactory::get(Item::MOB_HEAD, 3);
-		$tag = $item->getNamedTag();
-		$tag->setByteArray("SkinData", $skin->getSkinData());
-		$tag->setString("Head", $name);
-		$item->setNamedTag($tag);
-		$item->setCustomName("§r§6".($name ?? "Player")."'s Head");
-		return $item;
-	}
+    /**
+     * @param CompoundTag|Skin $skin
+     * @return Item
+     */
+    public static function getPlayerHeadItem($skin) : Item{
+        if($skin instanceof Skin){
+            $skinTag = self::skinToTag($skin);
+        }else{
+            $skinTag = $skin;
+        }
 
+        $item = ItemFactory::get(Item::MOB_HEAD, 3);
+        $tag = $item->getCustomBlockData() ?? new CompoundTag();
+        $tag->setTag($skinTag);
+        $item->setCustomBlockData($tag);
+        $item->setCustomName("§r§6".($name ?? "Player")."'s Head");
+        return $item;
+    }
+
+    public static function skinToTag(Skin $skin) : CompoundTag{
+        return new CompoundTag("Skin", [
+            new StringTag("Name", $skin->getSkinId()),
+            new ByteArrayTag("Data", $skin->getSkinData()),
+            new ByteArrayTag("CapeData", $skin->getCapeData()),
+            new StringTag("GeometryName", $skin->getGeometryName()),
+            new ByteArrayTag("GeometryData", $skin->getGeometryData())
+        ]);
+    }
+
+    public static function tagToSkin(CompoundTag $tag) : Skin{
+        return new Skin(
+            $tag->getString("Name"),
+            $tag->getByteArray("Data"),
+            $tag->getByteArray("CapeData", ""),
+            $tag->getString("GeometryName", ""),
+            $tag->getByteArray("GeometryData", "")
+        );
+    }
 }
