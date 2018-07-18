@@ -25,6 +25,7 @@ namespace Enes5519\PlayerHead\entities;
 
 use Enes5519\PlayerHead\PlayerHead;
 use pocketmine\entity\Human;
+use pocketmine\entity\Skin;
 use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\event\entity\EntityDamageEvent;
 use pocketmine\Player;
@@ -34,11 +35,12 @@ class HeadEntity extends Human{
 
     public const HEAD_GEOMETRY = '{"geometry.player_head":{"texturewidth":64,"textureheight":64,"bones":[{"name":"head","pivot":[0,24,0],"cubes":[{"origin":[-4,0,-4],"size":[8,8,8],"uv":[0,0]}]}]}}';
 
-    public $width = 0, $height = 0;
+    public $width = 0.5, $height = 0.6;
 
     protected function initEntity() : void{
         $this->setMaxHealth(1);
         parent::initEntity();
+        $this->setSkin(new Skin($this->skin->getSkinId(), $this->skin->getSkinData(), "", "geometry.player_head", self::HEAD_GEOMETRY));
     }
 
     public function hasMovementUpdate() : bool{

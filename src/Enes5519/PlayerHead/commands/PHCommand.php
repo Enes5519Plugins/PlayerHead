@@ -56,7 +56,7 @@ class PHCommand extends Command{
 		if($player instanceof Player){
 			$name = $player->getName();
 			$skin = $player->getSkin();
-			$skin = new Skin($name, $skin->getSkinData(), $skin->getCapeData(), $skin->getGeometryName(), $skin->getGeometryData());
+			$skin = new Skin($name, $skin->getSkinData());
 			$item = PlayerHead::getPlayerHeadItem($skin);
 			$sender->getInventory()->addItem($item);
 			$sender->sendMessage("§8» §a$name's head added in your inventory.");

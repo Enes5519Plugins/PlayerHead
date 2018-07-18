@@ -113,31 +113,26 @@ class PlayerHead extends PluginBase implements Listener{
             $skinTag = $skin;
         }
 
+        $name = $skinTag->getString("Name", "Player");
         $item = ItemFactory::get(Item::MOB_HEAD, 3);
         $tag = $item->getCustomBlockData() ?? new CompoundTag();
         $tag->setTag($skinTag);
         $item->setCustomBlockData($tag);
-        $item->setCustomName("§r§6".($name ?? "Player")."'s Head");
+        $item->setCustomName("§r§6$name's Head");
         return $item;
     }
 
     public static function skinToTag(Skin $skin) : CompoundTag{
         return new CompoundTag("Skin", [
             new StringTag("Name", $skin->getSkinId()),
-            new ByteArrayTag("Data", $skin->getSkinData()),
-            new ByteArrayTag("CapeData", $skin->getCapeData()),
-            new StringTag("GeometryName", $skin->getGeometryName()),
-            new ByteArrayTag("GeometryData", $skin->getGeometryData())
+            new ByteArrayTag("Data", $skin->getSkinData())
         ]);
     }
 
     public static function tagToSkin(CompoundTag $tag) : Skin{
         return new Skin(
             $tag->getString("Name"),
-            $tag->getByteArray("Data"),
-            $tag->getByteArray("CapeData", ""),
-            $tag->getString("GeometryName", ""),
-            $tag->getByteArray("GeometryData", "")
+            $tag->getByteArray("Data")
         );
     }
 }
