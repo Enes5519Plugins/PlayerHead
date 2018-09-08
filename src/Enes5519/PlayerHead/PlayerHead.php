@@ -70,13 +70,8 @@ class PlayerHead extends PluginBase implements Listener{
      * @return HeadEntity
      */
     public static function spawnPlayerHead($skin, Position $pos, float $yaw = null, float $pitch = null) : HeadEntity{
-        if($skin instanceof Skin){
-            $skinTag = self::skinToTag($skin);
-        }else{
-            $skinTag = $skin;
-        }
-
-        $nbt = HeadEntity::createBaseNBT($pos->add(0.5, 0, 0.5), null, $yaw ?? 0.0, $pitch ?? 0.0);
+		$skinTag = $skin instanceof Skin ? self::skinToTag($skin) : $skin;
+		$nbt = HeadEntity::createBaseNBT($pos->add(0.5, 0, 0.5), null, $yaw ?? 0.0, $pitch ?? 0.0);
         $nbt->setTag($skinTag);
         $head = new HeadEntity($pos->level, $nbt);
         $head->spawnToAll();

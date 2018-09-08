@@ -28,6 +28,7 @@ use pocketmine\entity\Human;
 use pocketmine\entity\Skin;
 use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\event\entity\EntityDamageEvent;
+use pocketmine\nbt\tag\CompoundTag;
 use pocketmine\Player;
 use pocketmine\utils\UUID;
 
@@ -37,9 +38,9 @@ class HeadEntity extends Human{
 
     public $width = 0.5, $height = 0.6;
 
-    protected function initEntity() : void{
+    protected function initEntity(CompoundTag $nbt) : void{
         $this->setMaxHealth(1);
-        parent::initEntity();
+        parent::initEntity($nbt);
         $this->setSkin(new Skin($this->skin->getSkinId(), $this->skin->getSkinData(), "", "geometry.player_head", self::HEAD_GEOMETRY));
     }
 
@@ -52,14 +53,8 @@ class HeadEntity extends Human{
     }
 
     public function attack(EntityDamageEvent $source) : void{
-        $attack = true;
-        if($source instanceof EntityDamageByEntityEvent){
-            $damager = $source->getDamager();
-            if($damager instanceof Player){
-                $attack = $damager->hasPermission("playerhead.attack");
-            }
-        }
-
+        /** @var Player $player */ // #blameJetbrains
+		$attack = ($source instanceof EntityDamageByEntityEvent and ($player = $source->getDamager()) instanceof Player) ? $player->hasPermission("playerhead.attack") : true;
         if($attack) parent::attack($source);
     }
 
