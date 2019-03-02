@@ -30,7 +30,6 @@ use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\event\entity\EntityDamageEvent;
 use pocketmine\nbt\tag\CompoundTag;
 use pocketmine\Player;
-use pocketmine\utils\UUID;
 
 class HeadEntity extends Human{
 
@@ -39,27 +38,25 @@ class HeadEntity extends Human{
     public $width = 0.5, $height = 0.6;
 
     protected function initEntity(CompoundTag $nbt) : void{
-        $this->setMaxHealth(1);
-        parent::initEntity($nbt);
-        $this->setSkin(new Skin($this->skin->getSkinId(), $this->skin->getSkinData(), "", "geometry.player_head", self::HEAD_GEOMETRY));
+	    $this->setMaxHealth(1);
+	    parent::initEntity($nbt);
     }
 
     public function hasMovementUpdate() : bool{
         return false;
     }
 
-    public function getUniqueId() : UUID{
-        return $this->uuid;
-    }
-
     public function attack(EntityDamageEvent $source) : void{
         /** @var Player $player */ // #blameJetbrains
-		$attack = ($source instanceof EntityDamageByEntityEvent and ($player = $source->getDamager()) instanceof Player) ? $player->hasPermission("playerhead.attack") : true;
+		$attack = ($source instanceof EntityDamageByEntityEvent and ($player = $source->getDamager()) instanceof Player) ? $player->hasPermission('playerhead.attack') : true;
         if($attack) parent::attack($source);
     }
 
-    public function getDrops() : array{
+	public function setSkin(Skin $skin) : void{
+		parent::setSkin(new Skin($skin->getSkinId(), $skin->getSkinData(), $skin->getCapeData(), 'geometry.player_head', self::HEAD_GEOMETRY));
+	}
+
+	public function getDrops() : array{
         return [PlayerHead::getPlayerHeadItem($this->getSkin())];
     }
-
 }

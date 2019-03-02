@@ -1,20 +1,16 @@
-# PlayerHead
-Gives the head of a player. 
-
-## Commands
-- **/playerhead <player-name> : Give player head**
-
-## For Plugin Devs
+# PlayerHead  
+Gives the head of a player.   
+  
+## Commands  
+- **/playerhead [playerName] : Give player head** 
+  
+## For Developers 
+- Spawn  
 ```php
-# Spawn ($player is Player class)
-$skin = $player->getSkin(); // skin
-$skin = new Skin($player->getName(), $skin->getSkinData(), $skin->getCapeData(), $skin->getGeometryName(), $skin->getGeometryData()); // for item name
-PlayerHead::spawnPlayerHead($skin, $player); // Skin - Position - Yaw - Pitch
-```
-
-## TODOS
-- [ ] Add Config
-- [ ] Handle death event for give head
-
+$nbt = EntityFactory::createBaseNBT($player->add(0.5, 0, 0.5));  
+$nbt->setTag(PlayerHead::skinToTag($player->getSkin(), $player->getName()));  
+(EntityFactory::create(HeadEntity::class, $player->level, $nbt))->spawnToAll();  
+```  
+  
 ## Screenshot 
-<img height=200 src="https://cdn.pbrd.co/images/HkJebcX.png" />
+<img height=200 src="https://minecraftcommand.science//system/blogs/avatars/000/000/004/medium/custom_heads.png" />

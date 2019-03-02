@@ -29,18 +29,14 @@ use pocketmine\command\CommandSender;
 use pocketmine\command\utils\InvalidCommandSyntaxException;
 use pocketmine\entity\Skin;
 use pocketmine\Player;
+use pocketmine\utils\TextFormat;
 
 class PHCommand extends Command{
 
 	public function __construct(){
-		parent::__construct(
-			"playerhead",
-			"Give a player head",
-			"/playerhead <playerName:string>",
-			["ph"]
-		);
+		parent::__construct('playerhead', 'Give a player head', '/playerhead <playerName:string>', ['ph']);
 
-		$this->setPermission("playerhead.give");
+		$this->setPermission('playerhead.give');
 	}
 
 	public function execute(CommandSender $sender, string $commandLabel, array $args){
@@ -52,10 +48,12 @@ class PHCommand extends Command{
 			throw new InvalidCommandSyntaxException();
 		}
 
-		$player = $sender->getServer()->getPlayer(implode(" ", $args));
+		$player = $sender->getServer()->getPlayer($name = implode(' ', $args));
 		if($player instanceof Player){
 			$sender->getInventory()->addItem(PlayerHead::getPlayerHeadItem(new Skin($player->getName(), $player->getSkin()->getSkinData())));
-			$sender->sendMessage("§8» §a{$player->getName()}'s head added in your inventory.");
+			$sender->sendMessage(PlayerHead::PREFIX . TextFormat::GREEN . $player->getName() . '\'s head added in your inventory.');
+		}else{
+			$sender->sendMessage(PlayerHead::PREFIX . TextFormat::RED . $name . ' is not online.');
 		}
 
 		return true;
