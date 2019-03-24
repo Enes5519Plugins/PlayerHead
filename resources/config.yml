@@ -1,4 +1,7 @@
 ---
 drop-on-death: false
 head-format: '&r&6%s''s Head'
+
+message-head-added: '&a%s''s head added in your inventory.'
+message-not-online: '&c%s is not online.'
 ...

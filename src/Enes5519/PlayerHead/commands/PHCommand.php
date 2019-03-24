@@ -31,8 +31,11 @@ use pocketmine\Player;
 use pocketmine\utils\TextFormat;
 
 class PHCommand extends Command{
+	/** @var array */
+	private $messages;
 
-	public function __construct(){
+	public function __construct(array $messages){
+		$this->messages = $messages;
 		parent::__construct('playerhead', 'Give a player head', '/playerhead <playerName:string>', ['ph']);
 
 		$this->setPermission('playerhead.give');
@@ -50,9 +53,9 @@ class PHCommand extends Command{
 		$player = $sender->getServer()->getPlayer($name = implode(' ', $args));
 		if($player instanceof Player){
 			$sender->getInventory()->addItem(PlayerHead::getPlayerHeadItem($player->getSkin(), $player->getName()));
-			$sender->sendMessage(PlayerHead::PREFIX . TextFormat::GREEN . $player->getName() . '\'s head added in your inventory.');
+			$sender->sendMessage(PlayerHead::PREFIX . TextFormat::colorize(sprintf($this->messages['head-added'], $player->getName())));
 		}else{
-			$sender->sendMessage(PlayerHead::PREFIX . TextFormat::RED . $name . ' is not online.');
+			$sender->sendMessage(PlayerHead::PREFIX . TextFormat::colorize(sprintf($this->messages['not-online'], $name)));
 		}
 
 		return true;

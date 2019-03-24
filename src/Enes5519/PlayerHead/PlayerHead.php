@@ -46,20 +46,21 @@ class PlayerHead extends PluginBase implements Listener{
 	public const PREFIX = TextFormat::BLUE . 'PlayerHead' . TextFormat::DARK_GRAY . '> ';
 
 	public function onEnable() : void{
-		$this->loadConfig();
-
-		EntityFactory::register(HeadEntity::class, true, ['PlayerHead']);
-
-		$this->getServer()->getCommandMap()->register('playerhead', new PHCommand());
-		$this->getServer()->getPluginManager()->registerEvents($this, $this);
-	}
-
-	private function loadConfig() : void{
 		$this->saveDefaultConfig();
 
 		$data = $this->getConfig()->getAll();
 		$this->dropDeath = $data['drop-on-death'] ?? false;
 		self::$headFormat = $data['head-format'] ?? '&r&6%s\'s Head';
+		unset($data['drop-on-death'], $data['head-format']);
+		$messages = [];
+		foreach($data as $key => $message){
+			$messages[str_replace('message-', '', $key)] = $message;
+		}
+
+		EntityFactory::register(HeadEntity::class, true, ['PlayerHead']);
+
+		$this->getServer()->getCommandMap()->register('playerhead', new PHCommand($messages));
+		$this->getServer()->getPluginManager()->registerEvents($this, $this);
 	}
 
 	public function onPlace(BlockPlaceEvent $event) : void{
