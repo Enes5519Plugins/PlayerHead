@@ -33,23 +33,20 @@ use pocketmine\event\player\PlayerDeathEvent;
 use pocketmine\item\Item;
 use pocketmine\item\ItemFactory;
 use pocketmine\math\Vector3;
-use pocketmine\nbt\tag\ByteArrayTag;
 use pocketmine\nbt\tag\CompoundTag;
-use pocketmine\nbt\tag\StringTag;
 use pocketmine\plugin\PluginBase;
 use pocketmine\utils\TextFormat;
 
 class PlayerHead extends PluginBase implements Listener{
 	/** @var bool */
-	public static $dropDeath = false;
+	private $dropDeath = false;
 	/** @var string */
-	public static $headFormat;
+	private static $headFormat;
 
 	public const PREFIX = TextFormat::BLUE . 'PlayerHead' . TextFormat::DARK_GRAY . '> ';
 
 	public function onEnable() : void{
-		$this->saveDefaultConfig();
-		$this->loadSettings($this->getConfig()->getAll());
+		$this->loadConfig();
 
 		EntityFactory::register(HeadEntity::class, true, ['PlayerHead']);
 
@@ -57,50 +54,41 @@ class PlayerHead extends PluginBase implements Listener{
 		$this->getServer()->getPluginManager()->registerEvents($this, $this);
 	}
 
-	public function loadSettings(array $data) : void{
-		self::$dropDeath = $data['drop-on-death'] ?? false;
+	private function loadConfig() : void{
+		$this->saveDefaultConfig();
+
+		$data = $this->getConfig()->getAll();
+		$this->dropDeath = $data['drop-on-death'] ?? false;
 		self::$headFormat = $data['head-format'] ?? '&r&6%s\'s Head';
 	}
 
 	public function onPlace(BlockPlaceEvent $event) : void{
 		$player = $event->getPlayer();
-		if($player->hasPermission('playerhead.spawn') and ($item = $player->getInventory()->getItemInHand())->getId() === Item::MOB_HEAD){
-			$blockData = $item->getCustomBlockData();
-			if($blockData !== null){
-				$skin = $blockData->getCompoundTag('Skin');
-				if($skin !== null){
-					$nbt = EntityFactory::createBaseNBT($player->add(0.5, 0, 0.5), null, self::getYaw($event->getBlock(), $player));
-					$nbt->setTag($skin);
-					(EntityFactory::create(HeadEntity::class, $player->level, $nbt))->spawnToAll();
-					if(!$player->isCreative()){
-						$item->pop();
-						$player->getInventory()->setItemInHand($item);
-					}
-					$event->setCancelled();
-				}
+		if($player->hasPermission('playerhead.spawn') and ($item = $player->getInventory()->getItemInHand())->getId() === Item::MOB_HEAD and ($blockData = $item->getCustomBlockData()) !== null){
+			(EntityFactory::create(HeadEntity::class, $player->level, EntityFactory::createBaseNBT($player->add(0.5, 0, 0.5), null, self::getYaw($event->getBlock(), $player))->setTag('Skin', $blockData)))->spawnToAll();
+			if(!$player->isCreative()){
+				$player->getInventory()->setItemInHand($item->setCount($item->getCount() - 1));
 			}
+			$event->setCancelled();
 		}
 	}
 
 	public function onDeath(PlayerDeathEvent $event) : void{
-		if(self::$dropDeath){
+		if($this->dropDeath){
 			$drops = $event->getDrops();
 			$drops[] = self::getPlayerHeadItem($event->getPlayer()->getSkin(), $event->getPlayer()->getName());
 			$event->setDrops($drops);
 		}
 	}
 
-	public static function getYaw(Vector3 $pos, Vector3 $target) : float{
-		$xDist = $target->x - $pos->x;
-		$zDist = $target->z - $pos->z;
-		$yaw = atan2($zDist, $xDist) / M_PI * 180 - 90;
+	private static function getYaw(Vector3 $pos, Vector3 $target) : float{
+		$yaw = atan2($target->z - $pos->z, $target->x - $pos->x) / M_PI * 180 - 90;
 		if($yaw < 0){
 			$yaw += 360.0;
 		}
 
 		foreach([45, 90, 135, 180, 225, 270, 315, 360] as $direction){
-			$min = min($yaw, $direction);
-			if($min === $yaw){
+			if($yaw <= $direction){
 				return $direction;
 			}
 		}
@@ -109,30 +97,13 @@ class PlayerHead extends PluginBase implements Listener{
 	}
 
 	/**
-	 * @param CompoundTag|Skin $skin
-	 * @param string|null $name
+	 * @param Skin $skin
+	 * @param string $name
 	 * @return Item
 	 */
-	public static function getPlayerHeadItem($skin, string $name = null) : Item{
-		/** @var CompoundTag $skinTag */
-		$skinTag = ($skin instanceof Skin) ? self::skinToTag($skin) : $skin;
-		$item = ItemFactory::get(Item::MOB_HEAD, 3);
-		$item->setCustomBlockData(new CompoundTag('', [$skinTag]));
-		$item->setCustomName(TextFormat::colorize(sprintf(self::$headFormat, $name ?? $skinTag->getString('Name', 'Player')), '&'));
-		return $item;
-	}
-
-	public static function skinToTag(Skin $skin, string $name = null) : CompoundTag{
-		return new CompoundTag('Skin', [
-			new StringTag('Name', $name ?? $skin->getSkinId()),
-			new ByteArrayTag('Data', $skin->getSkinData())
-		]);
-	}
-
-	public static function tagToSkin(CompoundTag $tag) : Skin{
-		return new Skin(
-			$tag->getString('Name'),
-			$tag->getByteArray('Data')
-		);
+	public static function getPlayerHeadItem(Skin $skin, string $name) : Item{
+		return (ItemFactory::get(Item::MOB_HEAD, 3))
+			->setCustomBlockData((new CompoundTag())->setString('Name', $name)->setByteArray('Data', $skin->getSkinData()))
+			->setCustomName(TextFormat::colorize(sprintf(self::$headFormat, $name), '&'));
 	}
 }

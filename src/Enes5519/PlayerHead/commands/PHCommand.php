@@ -27,7 +27,6 @@ use Enes5519\PlayerHead\PlayerHead;
 use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
 use pocketmine\command\utils\InvalidCommandSyntaxException;
-use pocketmine\entity\Skin;
 use pocketmine\Player;
 use pocketmine\utils\TextFormat;
 
@@ -50,7 +49,7 @@ class PHCommand extends Command{
 
 		$player = $sender->getServer()->getPlayer($name = implode(' ', $args));
 		if($player instanceof Player){
-			$sender->getInventory()->addItem(PlayerHead::getPlayerHeadItem(new Skin($player->getName(), $player->getSkin()->getSkinData())));
+			$sender->getInventory()->addItem(PlayerHead::getPlayerHeadItem($player->getSkin(), $player->getName()));
 			$sender->sendMessage(PlayerHead::PREFIX . TextFormat::GREEN . $player->getName() . '\'s head added in your inventory.');
 		}else{
 			$sender->sendMessage(PlayerHead::PREFIX . TextFormat::RED . $name . ' is not online.');

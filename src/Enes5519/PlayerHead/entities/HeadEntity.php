@@ -32,7 +32,6 @@ use pocketmine\nbt\tag\CompoundTag;
 use pocketmine\Player;
 
 class HeadEntity extends Human{
-
     public const HEAD_GEOMETRY = '{"geometry.player_head":{"texturewidth":64,"textureheight":64,"bones":[{"name":"head","pivot":[0,24,0],"cubes":[{"origin":[-4,0,-4],"size":[8,8,8],"uv":[0,0]}]}]}}';
 
     public $width = 0.5, $height = 0.6;
@@ -53,10 +52,10 @@ class HeadEntity extends Human{
     }
 
 	public function setSkin(Skin $skin) : void{
-		parent::setSkin(new Skin($skin->getSkinId(), $skin->getSkinData(), $skin->getCapeData(), 'geometry.player_head', self::HEAD_GEOMETRY));
+		parent::setSkin(new Skin($skin->getSkinId(), $skin->getSkinData(), '', 'geometry.player_head', self::HEAD_GEOMETRY));
 	}
 
 	public function getDrops() : array{
-        return [PlayerHead::getPlayerHeadItem($this->getSkin())];
+        return [PlayerHead::getPlayerHeadItem($this->skin, $this->skin->getSkinId())];
     }
 }
