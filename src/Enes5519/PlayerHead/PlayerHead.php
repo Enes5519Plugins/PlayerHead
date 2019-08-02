@@ -25,7 +25,7 @@ namespace Enes5519\PlayerHead;
 
 use Enes5519\PlayerHead\commands\PHCommand;
 use Enes5519\PlayerHead\entities\HeadEntity;
-use pocketmine\entity\EntityFactory;
+use pocketmine\entity\Entity;
 use pocketmine\entity\Skin;
 use pocketmine\event\block\BlockPlaceEvent;
 use pocketmine\event\Listener;
@@ -34,6 +34,8 @@ use pocketmine\item\Item;
 use pocketmine\item\ItemFactory;
 use pocketmine\math\Vector3;
 use pocketmine\nbt\tag\CompoundTag;
+use pocketmine\nbt\tag\StringTag;
+use pocketmine\nbt\tag\ByteArrayTag;
 use pocketmine\plugin\PluginBase;
 use pocketmine\utils\TextFormat;
 
@@ -51,22 +53,20 @@ class PlayerHead extends PluginBase implements Listener{
 		$data = $this->getConfig()->getAll();
 		$this->dropDeath = $data['drop-on-death'] ?? false;
 		self::$headFormat = $data['head-format'] ?? '&r&6%s\'s Head';
-		unset($data['drop-on-death'], $data['head-format']);
-		$messages = [];
-		foreach($data as $key => $message){
-			$messages[str_replace('message-', '', $key)] = $message;
-		}
 
-		EntityFactory::register(HeadEntity::class, true, ['PlayerHead']);
+		Entity::registerEntity(HeadEntity::class, true, ['PlayerHead']);
 
-		$this->getServer()->getCommandMap()->register('playerhead', new PHCommand($messages));
+		$this->getServer()->getCommandMap()->register('playerhead', new PHCommand($data));
 		$this->getServer()->getPluginManager()->registerEvents($this, $this);
 	}
 
 	public function onPlace(BlockPlaceEvent $event) : void{
 		$player = $event->getPlayer();
 		if($player->hasPermission('playerhead.spawn') and ($item = $player->getInventory()->getItemInHand())->getId() === Item::MOB_HEAD and ($blockData = $item->getCustomBlockData()) !== null){
-			(EntityFactory::create(HeadEntity::class, $player->level, EntityFactory::createBaseNBT($player->add(0.5, 0, 0.5), null, self::getYaw($event->getBlock(), $player))->setTag('Skin', $blockData)))->spawnToAll();
+			$nbt = Entity::createBaseNBT($event->getBlock()->add(0.5, 0, 0.5), null, self::getYaw($event->getBlock(), $player));
+            $blockData->setName('Skin');
+			$nbt->setTag($blockData);
+            (new HeadEntity($player->level, $nbt))->spawnToAll();
 			if(!$player->isCreative()){
 				$player->getInventory()->setItemInHand($item->setCount($item->getCount() - 1));
 			}
@@ -104,7 +104,10 @@ class PlayerHead extends PluginBase implements Listener{
 	 */
 	public static function getPlayerHeadItem(Skin $skin, string $name) : Item{
 		return (ItemFactory::get(Item::MOB_HEAD, 3))
-			->setCustomBlockData((new CompoundTag())->setString('Name', $name)->setByteArray('Data', $skin->getSkinData()))
+			->setCustomBlockData(new CompoundTag('Skin', [
+				new StringTag('Name', $name),
+				new ByteArrayTag('Data', $skin->getSkinData())
+			]))
 			->setCustomName(TextFormat::colorize(sprintf(self::$headFormat, $name), '&'));
 	}
 }

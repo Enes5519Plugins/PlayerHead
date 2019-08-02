@@ -53,9 +53,9 @@ class PHCommand extends Command{
 		$player = $sender->getServer()->getPlayer($name = implode(' ', $args));
 		if($player instanceof Player){
 			$sender->getInventory()->addItem(PlayerHead::getPlayerHeadItem($player->getSkin(), $player->getName()));
-			$sender->sendMessage(PlayerHead::PREFIX . TextFormat::colorize(sprintf($this->messages['head-added'], $player->getName())));
+			$sender->sendMessage(PlayerHead::PREFIX . TextFormat::colorize(sprintf($this->messages['message-head-added'], $player->getName())));
 		}else{
-			$sender->sendMessage(PlayerHead::PREFIX . TextFormat::colorize(sprintf($this->messages['not-online'], $name)));
+			$sender->sendMessage(PlayerHead::PREFIX . TextFormat::colorize(sprintf($this->messages['message-not-online'], $name)));
 		}
 
 		return true;

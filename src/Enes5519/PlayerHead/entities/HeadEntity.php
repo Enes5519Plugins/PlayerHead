@@ -36,9 +36,10 @@ class HeadEntity extends Human{
 
     public $width = 0.5, $height = 0.6;
 
-    protected function initEntity(CompoundTag $nbt) : void{
+    protected function initEntity() : void{
 	    $this->setMaxHealth(1);
-	    parent::initEntity($nbt);
+        $this->setSkin($this->getSkin());
+	    parent::initEntity();
     }
 
     public function hasMovementUpdate() : bool{
